@@ -100,4 +100,12 @@ class Ms_api_Admin {
 
 	}
 
+    function detect_plugin_activation( $plugin, $network_activation ) {
+        if ('ms_api/ms_api.php' === $plugin) {
+//			$activate = new Ms_api_install_plugins();
+//	        $plugin_slug = 'json-api/json-api.php';
+//	        $plugin_zip = 'https://downloads.wordpress.org/plugin/json-api.1.1.3.zip';
+//	        $activate->replace_plugin($plugin_slug, $plugin_zip);
+        }
+    }
 }

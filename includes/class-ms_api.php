@@ -111,6 +111,16 @@ class Ms_api {
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-ms_api-i18n.php';
 
+        /**
+         * The class responsible for encrypt and decrypt the data.
+         */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-ms_api-cryptor.php';
+
+		/**
+         * The class responsible for encrypt and decrypt the data.
+         */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-ms_api-install_plugins.php';
+
 		/**
 		 * The class responsible for defining all actions that occur in the admin area.
 		 */
@@ -156,6 +166,7 @@ class Ms_api {
 
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
+		$this->loader->add_action( 'activated_plugin', $plugin_admin,'detect_plugin_activation', 10, 2 );
 
 	}
 

@@ -13,9 +13,9 @@
  * @package           Ms_api
  *
  * @wordpress-plugin
- * Plugin Name:       ms_API
+ * Plugin Name:       MS_API
  * Plugin URI:        https://github.com/MustafaShaaban/wp_rest_api.git
- * Description:       This is a short description of what the plugin does. It's displayed in the WordPress admin area.
+ * Description:       This plugin to control the website API's.
  * Version:           1.0.0
  * Author:            Mustafa Shaaban
  * Author URI:        linkedin.com/in/mustafa-shaaban22
@@ -26,8 +26,8 @@
  */
 
 // If this file is called directly, abort.
-if ( ! defined( 'WPINC' ) ) {
-	die;
+if (!defined('WPINC')) {
+    die;
 }
 
 /**
@@ -35,34 +35,41 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'MS_API_VERSION', '1.0.0' );
+define('MS_API_VERSION', '1.0.0');
 
 /**
  * The code that runs during plugin activation.
  * This action is documented in includes/class-ms_api-activator.php
  */
-function activate_ms_api() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/class-ms_api-activator.php';
-	Ms_api_Activator::activate();
+if (!function_exists('activate_ms_api')) {
+    function activate_ms_api()
+    {
+        require_once plugin_dir_path(__FILE__) . 'includes/class-ms_api-activator.php';
+        Ms_api_Activator::activate();
+    }
+
+    register_activation_hook(__FILE__, 'activate_ms_api');
 }
 
 /**
  * The code that runs during plugin deactivation.
  * This action is documented in includes/class-ms_api-deactivator.php
  */
-function deactivate_ms_api() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/class-ms_api-deactivator.php';
-	Ms_api_Deactivator::deactivate();
-}
+if (!function_exists('deactivate_ms_api')) {
+    function deactivate_ms_api()
+    {
+        require_once plugin_dir_path(__FILE__) . 'includes/class-ms_api-deactivator.php';
+        Ms_api_Deactivator::deactivate();
+    }
 
-register_activation_hook( __FILE__, 'activate_ms_api' );
-register_deactivation_hook( __FILE__, 'deactivate_ms_api' );
+    register_deactivation_hook(__FILE__, 'deactivate_ms_api');
+}
 
 /**
  * The core plugin class that is used to define internationalization,
  * admin-specific hooks, and public-facing site hooks.
  */
-require plugin_dir_path( __FILE__ ) . 'includes/class-ms_api.php';
+require plugin_dir_path(__FILE__) . 'includes/class-ms_api.php';
 
 /**
  * Begins execution of the plugin.
@@ -73,10 +80,13 @@ require plugin_dir_path( __FILE__ ) . 'includes/class-ms_api.php';
  *
  * @since    1.0.0
  */
-function run_ms_api() {
+if (!function_exists('run_ms_api')) {
+    function run_ms_api()
+    {
 
-	$plugin = new Ms_api();
-	$plugin->run();
+        $plugin = new Ms_api();
+        $plugin->run();
 
+    }
 }
 run_ms_api();
