@@ -42,6 +42,15 @@ class Ms_api_install_plugins {
 		}
 	}
 
+	public static function is_plugin_installed_notice($plugin_slug) {
+		$all_plugins = get_plugins();
+		if ( ! empty( $all_plugins[ $plugin_slug ] ) ) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	public function install_plugin( $plugin_zip ) {
 		include_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 		wp_cache_flush();

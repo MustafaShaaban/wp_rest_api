@@ -51,7 +51,10 @@ class Ms_api_Admin {
 
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
+		$this->cryptor = new Ms_api_cryptor();
 
+		// Add the plugin menus
+		add_action( 'admin_menu', array($this,'ms_api_menus' ));
 	}
 
 	/**
@@ -100,12 +103,44 @@ class Ms_api_Admin {
 
 	}
 
-    function detect_plugin_activation( $plugin, $network_activation ) {
+	/**
+	 * The function responsible for adding the plugin menu page
+	 */
+	public function ms_api_menus() {
+		add_menu_page( 'MS API', 'MS API', 'manage_options', 'ms-api-dashboard', array($this,'ms_api_menu_page'));
+		add_submenu_page('ms-api-dashboard', 'Dashboard', 'Dashboard', 'manage_options', 'ms-api-dashboard',  array($this,'ms_api_menu_page'));
+		add_submenu_page('ms-api-dashboard', 'Settings', 'Settings', 'manage_options', 'ms-api-settings',  array($this,'ms_api_sub_menu_page'));
+	}
+
+	public function ms_api_menu_page(){
+		include_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/public/dashboard-page.php';
+	}
+
+	public function ms_api_sub_menu_page(){
+		include_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/public/settings-page.php';
+	}
+
+	/**
+	 * The function fires after the plugin activation
+	 * @param $plugin
+	 * @param $network_activation
+	 */
+    public function detect_plugin_activation( $plugin, $network_activation ) {
         if ('ms_api/ms_api.php' === $plugin) {
-//			$activate = new Ms_api_install_plugins();
-//	        $plugin_slug = 'json-api/json-api.php';
-//	        $plugin_zip = 'https://downloads.wordpress.org/plugin/json-api.1.1.3.zip';
-//	        $activate->replace_plugin($plugin_slug, $plugin_zip);
+	        $plugin_slug = 'json-api/json-api.php';
+	        $plugin_status = Ms_api_install_plugins::is_plugin_installed_notice($plugin_slug);
+	        if (false === $plugin_status) {
+	        	$plug = $this->cryptor->encrypt('true');
+		        $dashboard = add_query_arg( array(
+			        'page' => 'ms-api-dashboard',
+			        's' => $plug,
+		        ), admin_url() );
+		        wp_redirect($dashboard);
+		        exit();
+	        }
+
         }
     }
+
+
 }

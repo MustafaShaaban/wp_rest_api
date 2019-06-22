@@ -166,6 +166,7 @@ class Ms_api {
 
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
+		// Action to call after the plugin activation
 		$this->loader->add_action( 'activated_plugin', $plugin_admin,'detect_plugin_activation', 10, 2 );
 
 	}
