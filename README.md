@@ -11,10 +11,10 @@ This plugin still under development and has been created to handle the whole web
 
 _**Required data:**_
     
-    url = domain_name/wp-json/MSAPI/users/login
+    url = {domain_name}/wp-json/MSAPI/users/login
         body_data:
-            user_login => The provided username
-            user_password => The provided password
+            user_login      => The provided username
+            user_password   => The provided password
 
 _**Sample Code (JS XHR):**_           
             
@@ -31,7 +31,7 @@ _**Sample Code (JS XHR):**_
       }
     });
     
-    xhr.open("POST", "domain_name/wp-json/MSAPI/users/login");
+    xhr.open("POST", "{domain_name}/wp-json/MSAPI/users/login");
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     xhr.setRequestHeader("Cache-Control", "no-cache");
     
@@ -46,7 +46,7 @@ _**Sample Code (jQuery AJAX):**_
     var settings = {
       "async": true,
       "crossDomain": true,
-      "url": "domain_name/wp-json/MSAPI/users/login",
+      "url": "{domain_name}/wp-json/MSAPI/users/login",
       "method": "POST",
       "headers": {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -111,14 +111,14 @@ Response will be JSON.
 
 _**Required data:**_
     
-    url = domain_name/wp-json/MSAPI/users/register
-            body_data
-                username => The provided username
-                email => The provided email
-                password1 => The first password
-                password2 => Rewritten password
-                phone => The provided phone number
-                occupation => The provided occupation
+    url = {domain_name}/wp-json/MSAPI/users/register
+            body_data:
+                username    => The provided username
+                email       => The provided email
+                password1   => The first password
+                password2   => Rewritten password
+                phone       => The provided phone number
+                occupation  => The provided occupation
 
 _**Sample Code (JS XHR):**_           
             
@@ -139,7 +139,7 @@ _**Sample Code (JS XHR):**_
           }
         });
         
-        xhr.open("POST", "domain_name/wp-json/MSAPI/users/register");
+        xhr.open("POST", "{domain_name}/wp-json/MSAPI/users/register");
         xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
         xhr.setRequestHeader("Cache-Control", "no-cache");        
         
@@ -154,7 +154,7 @@ _**Sample Code (jQuery AJAX):**_
     var settings = {
       "async": true,
       "crossDomain": true,
-      "url": "domain_name/wp-json/MSAPI/users/login",
+      "url": "{domain_name}/wp-json/MSAPI/users/login",
       "method": "POST",
       "headers": {
         "Content-Type": "application/x-www-form-urlencoded",
