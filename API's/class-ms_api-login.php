@@ -63,9 +63,9 @@ class Ms_api_login extends WP_REST_Request
             $userdata   = $this->MSAPI_get_userData($user);
             $response   = [
                 'code'      => 200,
-                'token'     => $token->token,
+                'message'   => 'The user has been logged in successfully',
                 'data'      => $userdata,
-                'message'   => 'The user has been logged in successfully'
+                'token'     => $token->token
             ];
         }
         return new WP_REST_Response($response, 123);
