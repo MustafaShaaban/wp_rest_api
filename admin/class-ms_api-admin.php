@@ -54,7 +54,7 @@ class Ms_api_Admin {
 		$this->cryptor = new Ms_api_cryptor();
 
 		// Add the plugin menus
-		add_action( 'admin_menu', array($this,'ms_api_menus' ));
+//		add_action( 'admin_menu', array($this,'ms_api_menus' ));
 	}
 
 	/**
@@ -106,19 +106,19 @@ class Ms_api_Admin {
 	/**
 	 * The function responsible for adding the plugin menu page
 	 */
-//	public function ms_api_menus() {
-//		add_menu_page( 'MS API', 'MS API', 'manage_options', 'ms-api-dashboard', array($this,'ms_api_menu_page'));
-//		add_submenu_page('ms-api-dashboard', 'Dashboard', 'Dashboard', 'manage_options', 'ms-api-dashboard',  array($this,'ms_api_menu_page'));
-//		add_submenu_page('ms-api-dashboard', 'Settings', 'Settings', 'manage_options', 'ms-api-settings',  array($this,'ms_api_sub_menu_page'));
-//	}
-//
-//	public function ms_api_menu_page(){
-//		include_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/public/dashboard-page.php';
-//	}
-//
-//	public function ms_api_sub_menu_page(){
-//		include_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/public/settings-page.php';
-//	}
+	public function ms_api_menus() {
+		add_menu_page( 'MS API', 'MS API', 'manage_options', 'ms-api-dashboard', array($this,'ms_api_menu_page'));
+		add_submenu_page('ms-api-dashboard', 'Dashboard', 'Dashboard', 'manage_options', 'ms-api-dashboard',  array($this,'ms_api_menu_page'));
+		add_submenu_page('ms-api-dashboard', 'Settings', 'Settings', 'manage_options', 'ms-api-settings',  array($this,'ms_api_sub_menu_page'));
+	}
+
+	public function ms_api_menu_page(){
+		include_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/public/dashboard-page.php';
+	}
+
+	public function ms_api_sub_menu_page(){
+		include_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/public/settings-page.php';
+	}
 
 	/**
 	 * The function fires after the plugin activation
