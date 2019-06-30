@@ -107,7 +107,7 @@ class Ms_api_register extends WP_REST_Request
             $response['code'] = 200;
             $response['message'] = __("User '" . $username . "' Registration was Successful", "wp-rest-user");
             $response['data'] = $userdata;
-            $response['token'] = $token;
+            $response['token'] = $token->token;
         } else {
             return $user_id;
         }
