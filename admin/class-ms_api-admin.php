@@ -126,20 +126,20 @@ class Ms_api_Admin {
 	 * @param $network_activation
 	 */
     public function detect_plugin_activation( $plugin, $network_activation ) {
-        if ('ms_api/ms_api.php' === $plugin) {
-	        $plugin_slug = 'json-api/json-api.php';
-	        $plugin_status = Ms_api_install_plugins::is_plugin_installed_notice($plugin_slug);
-	        if (false === $plugin_status) {
-	        	$plug = $this->cryptor->encrypt('true');
-		        $dashboard = add_query_arg( array(
-			        'page' => 'ms-api-dashboard',
-			        's' => $plug,
-		        ), admin_url() );
-		        wp_redirect($dashboard);
-		        exit();
-	        }
-
-        }
+//        if ('ms_api/ms_api.php' === $plugin) {
+//	        $plugin_slug = 'json-api/json-api.php';
+//	        $plugin_status = Ms_api_install_plugins::is_plugin_installed_notice($plugin_slug);
+//	        if (false === $plugin_status) {
+//	        	$plug = $this->cryptor->encrypt('true');
+//		        $dashboard = add_query_arg( array(
+//			        'page' => 'ms-api-dashboard',
+//			        's' => $plug,
+//		        ), admin_url() );
+//		        wp_redirect($dashboard);
+//		        exit();
+//	        }
+//
+//        }
     }
 
 
