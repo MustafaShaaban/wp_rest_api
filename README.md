@@ -50,7 +50,6 @@ _**Sample Code (jQuery AJAX):**_
       "method": "POST",
       "headers": {
         "Content-Type": "application/x-www-form-urlencoded",
-        "Cache-Control": "no-cache",
         "cache-control": "no-cache"
       },
       "mimeType": "multipart/form-data",
@@ -158,7 +157,6 @@ _**Sample Code (jQuery AJAX):**_
       "method": "POST",
       "headers": {
         "Content-Type": "application/x-www-form-urlencoded",
-        "Cache-Control": "no-cache",
         "cache-control": "no-cache"
       },
       "mimeType": "multipart/form-data",
