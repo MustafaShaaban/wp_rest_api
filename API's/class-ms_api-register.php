@@ -16,7 +16,7 @@ class Ms_api_register extends WP_REST_Request
         /**
          * Handle Register User request.
          */
-        register_rest_route('wp/v2', 'users/register', array(
+        register_rest_route('MSAPI', 'users/register', array(
             'methods' => 'POST',
             'callback' => array($this, 'MS_API_user_endpoint_handler'),
         ));
@@ -31,15 +31,15 @@ class Ms_api_register extends WP_REST_Request
 
         $error = new WP_Error();
         if (empty($username)) {
-            $error->add(400, __("Username field 'username' is required.", 'wp-rest-user'), array('status' => 400));
+            $error->add(400, "Username field 'username' is required.", array('status' => 400));
             return $error;
         }
         if (empty($email)) {
-            $error->add(401, __("Email field 'email' is required.", 'wp-rest-user'), array('status' => 400));
+            $error->add(401,"Email field 'email' is required.", array('status' => 400));
             return $error;
         }
         if (empty($password)) {
-            $error->add(404, __("Password field 'password' is required.", 'wp-rest-user'), array('status' => 400));
+            $error->add(404, "Password field 'password' is required.", array('status' => 400));
             return $error;
         }
 

@@ -121,10 +121,16 @@ class Ms_api {
          * The class responsible for encrypt and decrypt the data.
          */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . "API's/class-ms_api-cryptor.php";
-        /**
+
+		/**
          * The class responsible for Register a new user.
          */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . "API's/class-ms_api-register.php";
+
+		/**
+         * The class responsible for login users.
+         */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . "API's/class-ms_api-login.php";
 
 		/**
 		 * The class responsible for defining all actions that occur in the admin area.

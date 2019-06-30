@@ -29,4 +29,19 @@
 	 * practising this, we should strive to set a better example in our own work.
 	 */
 
+	$.ajax({
+		url: "http://localhost:9090/API/wp-json/MSAPI/stars/login",
+		method: 'POST',
+		data: {
+			user_login:  "API",
+			user_password:  "123456"
+		},
+		beforeSend: function ( xhr ) {
+			// xhr.setRequestHeader( 'X-WP-Nonce', wpApiSettings.nonce );
+		},
+		success: function (res) {
+			console.log(res);
+		}
+	});
+
 })( jQuery );
