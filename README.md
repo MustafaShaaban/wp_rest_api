@@ -1,16 +1,16 @@
 # wp_rest_api
 API's
 
-#Login API:
+Login API:
 
     url = domain_name/wp-json/MSAPI/stars/login
     body_data
         * user_login => The provided username
         * user_password => The provided password
         
-#Response
+Response
 
-    #success
+    success
     
         array (
             'code' => 200,
@@ -18,7 +18,7 @@ API's
             'message' => 'The user has been logged in successfully'
         )
         
-    #False
+    False
     
         array (
             'code' => 400,
