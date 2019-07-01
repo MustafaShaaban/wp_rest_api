@@ -1,7 +1,7 @@
 # MS API
 This plugin still under development and has been created to handle the whole website API's
 
-#### Current API's:
+#### Index:
     
     1- Login API.
     2- Registration API.
