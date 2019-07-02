@@ -133,6 +133,11 @@ class Ms_api {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . "API's/class-ms_api-login.php";
 
 		/**
+         * The class responsible for retrieve the occupation values.
+         */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . "API's/class-ms_api-occupation.php";
+
+		/**
 		 * The class responsible for defining all actions that occur in the admin area.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-ms_api-admin.php';
