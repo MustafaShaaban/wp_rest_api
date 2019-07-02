@@ -45,6 +45,35 @@ class Ms_api_login extends WP_REST_Request
             return $error;
         }
 
+        $user_login = get_user_by('login', $username);
+        if(!$user_login) {
+            $user_login = get_user_by('email', $username);
+            if(!$user_login) {
+                $user_query = new WP_User_Query( array( 'meta_key' => 'phone', 'meta_value' => $username ) );
+                $user_meta = $user_query->get_results();
+
+                if (empty($user_meta)) {
+                    $response = [
+                        'code'      => 400,
+                        'message'   => 'Username or Password is invalid!'
+                    ];
+                    return new WP_REST_Response($response, 123);
+                }
+                if (count($user_meta) > 1) {
+                    $response = [
+                        'code'      => 400,
+                        'message'   => 'Failed login with duplicate username'
+                    ];
+                    return new WP_REST_Response($response, 123);
+                }
+                if (!empty($user_meta) && count($user_meta) === 1) {
+                    $user_login = $user_meta[0];
+                    $username = $user_login->data->user_login;
+                }
+
+            }
+        }
+
         $creds                  = array();
         $creds['user_login']    = $username;
         $creds['user_password'] = $password;

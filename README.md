@@ -13,7 +13,7 @@ _**Required data:**_
     
     url = {domain_name}/wp-json/MSAPI/users/login
         body_data:
-            user_login      => The provided username
+            user_login      => The provided username / email / phone number
             user_password   => The provided password
 
 _**Sample Code (JS XHR):**_           
