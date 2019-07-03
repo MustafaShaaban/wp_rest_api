@@ -8,15 +8,25 @@
 
 class Ms_api_register extends WP_REST_Request
 {
+
+    protected $username;
+    protected $email;
+    protected $password;
+    protected $password2;
+    protected $phone;
+    protected $occupation;
+
     public function __construct()
     {
         add_action('rest_api_init', array($this, 'MS_API_register_new_user'));
     }
-    public function MS_API_register_new_user($request){
+
+    public function MS_API_register_new_user($request)
+    {
         /**
          * Handle Register User request.
          */
-        register_rest_route('MSAPI', 'users/register', array(
+        register_rest_route('MSAPI', 'users/register/(?P<type>\S+)', array(
             'methods' => 'POST',
             'callback' => array($this, 'MS_API_user_endpoint_handler'),
         ));
@@ -26,100 +36,96 @@ class Ms_api_register extends WP_REST_Request
     {
         $response = array();
         $parameters = $request->get_body_params();
-        $username = sanitize_text_field($parameters['username']);
-        $email = sanitize_text_field($parameters['email']);
-        $password = sanitize_text_field($parameters['password1']);
-        $password2 = sanitize_text_field($parameters['password2']);
-        $phone = sanitize_text_field($parameters['phone']);
-        $occupation = sanitize_text_field($parameters['occupation']); // peepso_user_field_146
+        $url_params = $request->get_url_params();
+        $this->username = sanitize_text_field($parameters['username']);
+        $this->email = sanitize_text_field($parameters['email']);
+        $this->password = sanitize_text_field($parameters['password1']);
+        $this->password2 = sanitize_text_field($parameters['password2']);
+        $this->phone = sanitize_text_field($parameters['phone']);
+        $this->occupation = sanitize_text_field($parameters['occupation']); // peepso_user_field_146
 
 
         $error = new WP_Error();
-        if (empty($username)) {
+        if (empty($this->username)) {
             $error->add(400, "Username field 'username' is required.", array('status' => 400));
             return $error;
         }
-        if (empty($email)) {
-            $error->add(401,"Email field 'email' is required.", array('status' => 400));
+        if (empty($this->email)) {
+            $error->add(401, "Email field 'email' is required.", array('status' => 400));
             return $error;
         }
-        if (empty($password)) {
+        if (empty($this->password)) {
             $error->add(402, "Password field 'password' is required.", array('status' => 400));
             return $error;
         }
-        if (empty($phone)) {
+        if (empty($this->phone)) {
             $error->add(403, "Phone number field is required.", array('status' => 400));
             return $error;
         }
-        if (empty($occupation)) {
+        if (empty($this->occupation)) {
             $error->add(404, "occupation field is required.", array('status' => 400));
             return $error;
         }
 
 
-        if ( ! validate_username( $username ) ) {
-            $error->add( 405,'Sorry, the username you entered is not valid', array('status' => 400) );
+        if (!validate_username($this->username)) {
+            $error->add(405, 'Sorry, the username you entered is not valid', array('status' => 400));
             return $error;
         }
-        if (username_exists($username)) {
+        if (username_exists($this->username)) {
             $error->add(406, 'Sorry, that username already exists!', array('status' => 400));
             return $error;
         }
-        if (email_exists($email)) {
-            $error->add(407,'Sorry, that email already exists!', array('status' => 400));
+        if (email_exists($this->email)) {
+            $error->add(407, 'Sorry, that email already exists!', array('status' => 400));
             return $error;
         }
-        if (!empty($phone)) {
-            $args  = array(
+        if (!empty($this->phone)) {
+            $args = array(
                 'meta_key' => 'phone',
-                'meta_value' => $phone //the value to compare against
+                'meta_value' => $this->phone //the value to compare against
             );
-            $user_query = new WP_User_Query( $args );
+            $user_query = new WP_User_Query($args);
             $users = $user_query->get_results();
             if (!empty($users)) {
-                $error->add(408,'Sorry, that phone number already exists!', array('status' => 400));
+                $error->add(408, 'Sorry, that phone number already exists!', array('status' => 400));
                 return $error;
             }
         }
-        if ( 5 > strlen( $password ) ) {
-            $error->add( 409,'Password length must be greater than 5', array('status' => 400) );
+        if (5 > strlen($this->password)) {
+            $error->add(409, 'Password length must be greater than 5', array('status' => 400));
             return $error;
         }
-        if ( $password !== $password2 ) {
-            $error->add( 410,'Password is not identical', array('status' => 400) );
+        if ($this->password !== $this->password2) {
+            $error->add(410, 'Password is not identical', array('status' => 400));
             return $error;
         }
 
 
-        $user_id = wp_create_user($username, $password, $email);
-        if (!is_wp_error($user_id)) {
-            $user = get_user_by('id', $user_id);
-            $user->set_role('subscriber');
-            update_user_meta($user_id, 'phone', $phone);
-            update_user_meta($user_id, 'telephone', $phone);
-            update_user_meta($user_id, 'peepso_user_field_146', $occupation);
-            $userdata   = $this->MSAPI_get_userData($user);
-            $method     = 'POST';
-            $url        = home_url() . "/wp-json/jwt-auth/v1/token";
-            $data       = array('username' => $username,'password' => $password);
-            $token      = $this->getToken($method, $url, $data);
+        if ($url_params['type'] === 'authentication') {
+            $this->otp_authentication();
+        } elseif ($url_params['type'] === 'verification') {
+            $txId = $parameters['txId'];
+            $token = $parameters['token'];
+            if (empty($txId)) {
+                $error->add(411, "txId parameter can't be empty!", array('status' => 400));
+                return $error;
+            }
+            if (empty($token)) {
+                $error->add(412, "token parameter can't be empty!", array('status' => 400));
+                return $error;
+            }
 
-            $response['code'] = 200;
-            $response['message'] = __("User '" . $username . "' Registration was Successful", "wp-rest-user");
-            $response['data'] = $userdata;
-            $response['token'] = $token->token;
-        } else {
-            return $user_id;
+            $this->otp_verification($txId, $token);
         }
 
-        return new WP_REST_Response($response, 123);
     }
 
     public function MSAPI_get_userData($user)
     {
-        $user_basics    = $user->data;
-        $user_meta      = get_user_meta($user->ID);
-        $object         = new stdClass();
+        $user_basics = $user->data;
+        $user_meta = get_user_meta($user->ID);
+        $object = new stdClass();
         foreach ($user_meta as $key => $value) {
             $object->$key = $value[0];
         }
@@ -154,5 +160,144 @@ class Ms_api_register extends WP_REST_Request
             return json_decode($response);
         }
     }
+
+    public function otp_authentication()
+    {
+        /* The challenge rest api url which needs to be called to challenge the user. */
+        $generateUrl = "https://login.xecurify.com/moas/api/auth/challenge";
+        /* The customer Key provided to you */
+        $customerKey = "177305";
+        /* The customer API Key provided to you */
+        $apiKey = "OdTEiHblSdBbFbd4oCT062A1k2Zx7t1Z";
+        /* Current time in milliseconds since midnight, January 1, 1970 UTC. */
+        $currentTimeInMillis = round(microtime(true) * 1000);
+        /* Creating the Hash using SHA-512 algorithm */
+        $stringToHash = $customerKey . number_format($currentTimeInMillis, 0, '', '') .
+            $apiKey;
+        $hashValue = hash("sha512", $stringToHash);
+        /* The Array containing the request information */
+        $jsonRequest = array(
+            "customerKey" => $customerKey,
+            "phone" => $this->phone,
+            "email" => $this->email,
+            "authType" => "SMS",
+            "transactionName" => "CUSTOM-OTP-VERIFICATION"
+        );
+        /* JSON encode the request array to get JSON String */
+        $jsonRequestString = json_encode($jsonRequest);
+        $customerKeyHeader = "Customer-Key: " . $customerKey;
+        $timestampHeader = "Timestamp: " . number_format($currentTimeInMillis, 0, '', ''
+            );
+        $authorizationHeader = "Authorization: " . $hashValue;
+        /* Initialize curl */
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type: application/json",
+            $customerKeyHeader, $timestampHeader, $authorizationHeader));
+        curl_setopt($ch, CURLOPT_URL, $generateUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
+        curl_setopt($ch, CURLOPT_VERBOSE, TRUE);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonRequestString);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        /* Calling the rest API */
+        $result = curl_exec($ch);
+        if (curl_errno($ch)) {
+            print curl_error($ch);
+        } else {
+            curl_close($ch);
+        }
+        /* If a valid response is received, get the JSON response */
+        $response = (array)json_decode($result);
+        return new WP_REST_Response($response, 123);
+    }
+
+    public function otp_verification($txId, $token)
+    {
+        /* The challenge rest api url which needs to be called to validate the user. */
+        $validateUrl = "https://login.xecurify.com/moas/api/auth/validate";
+        /* The customer Key provided to you */
+        $customerKey = "177305";
+        /* The customer API Key provided to you */
+        $apiKey = "OdTEiHblSdBbFbd4oCT062A1k2Zx7t1Z";
+        /* Current time in milliseconds since midnight, January 1, 1970 UTC. */
+        $currentTimeInMillis = round(microtime(true) * 1000);
+        /* Creating the Hash using SHA-512 algorithm */
+        $stringToHash = $customerKey . number_format($currentTimeInMillis, 0, '', '') .
+            $apiKey;
+        $hashValue = hash("sha512", $stringToHash);
+        /* The Array containing the validate information */
+        $jsonRequest = array(
+            'txId' => $txId,
+            'token' => $token
+        );
+        /* JSON encode the request array to get JSON String */
+        $jsonRequestString = json_encode($jsonRequest);
+        $customerKeyHeader = "Customer-Key: " . $customerKey;
+        $timestampHeader = "Timestamp: " . number_format($currentTimeInMillis, 0, '', ''
+            );
+        $authorizationHeader = "Authorization: " . $hashValue;
+        /* Initialize curl */
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type: application/json",
+            $customerKeyHeader, $timestampHeader, $authorizationHeader));
+        curl_setopt($ch, CURLOPT_URL, $validateUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
+        curl_setopt($ch, CURLOPT_VERBOSE, TRUE);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonRequestString);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        /* Calling the rest API */
+        $result = curl_exec($ch);
+        if (curl_errno($ch)) {
+            print curl_error($ch);
+        } else {
+            curl_close($ch);
+        }
+        /* If a valid response is received, get the JSON response */
+        $response = (array)json_decode($result);
+        $status = $response['status'];
+        if ($status == 'SUCCESS') {
+            $this->MSAPI_create_user();
+        } else {
+            return new WP_REST_Response($response, 123);
+        }
+    }
+
+    public function MSAPI_create_user()
+    {
+        $user_id = wp_create_user($this->username, $this->password, $this->email);
+        if (!is_wp_error($user_id)) {
+            $user = get_user_by('id', $user_id);
+            $user->set_role('subscriber');
+            update_user_meta($user_id, 'phone', $this->phone);
+            update_user_meta($user_id, 'telephone', $this->phone);
+            update_user_meta($user_id, 'peepso_user_field_146', $this->occupation);
+            $userdata = $this->MSAPI_get_userData($user);
+            $method = 'POST';
+            $url = home_url() . "/wp-json/jwt-auth/v1/token";
+            $data = array('username' => $this->username, 'password' => $this->password);
+            $token = $this->getToken($method, $url, $data);
+
+            $response = array(
+                'code' => 200,
+                'message' => "User '" . $this->username . "' Registration was Successful",
+                'data' => $userdata,
+                'token' => $token->token
+            );
+
+        } else {
+            $response = array(
+                'code' => 400,
+                'message' => "Can't create this user"
+            );
+        }
+        return new WP_REST_Response($response, 123);
+    }
+
 }
+
 new Ms_api_register();

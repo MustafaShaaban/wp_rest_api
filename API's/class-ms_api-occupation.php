@@ -36,7 +36,7 @@ class Ms_api_occupation extends WP_REST_Request
             $occupation_values = get_post_meta($occupation->post->ID, 'select_options', true);
             $response = array(
                 'code' => 200,
-                'data' => unserialize($occupation_values)
+                'data' => $occupation_values
             );
         } else {
             $response = array(
