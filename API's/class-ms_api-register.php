@@ -32,9 +32,14 @@ class Ms_api_register extends WP_REST_Request
         ));
     }
 
+    /**
+     * The function responsible for handling API operations
+     *
+     * @param null $request
+     * @return WP_Error|WP_REST_Response
+     */
     public function MS_API_user_endpoint_handler($request = null)
     {
-        $response = array();
         $parameters = $request->get_body_params();
         $url_params = $request->get_url_params();
         $this->username = sanitize_text_field($parameters['username']);
@@ -44,7 +49,67 @@ class Ms_api_register extends WP_REST_Request
         $this->phone = sanitize_text_field($parameters['phone']);
         $this->occupation = sanitize_text_field($parameters['occupation']); // peepso_user_field_146
 
+        switch ($url_params['type']) {
 
+            case 'authentication':
+                $validations = $this->validate_body_content();
+                if (!empty($validations)) {
+                    return $validations;
+                }
+
+                $response = $this->otp_authentication();
+                return new WP_REST_Response($response, 123);
+                break;
+
+            case 'verification':
+                $validations = $this->validate_body_content();
+                if (!empty($validations)) {return $validations;}
+
+                $error = new WP_Error();
+                $txId = $parameters['txId'];
+                $otp_code = $parameters['otp_code'];
+                if (empty($txId)) {
+                    $error->add(411, "txId parameter can't be empty!", array('status' => 400));
+                    return $error;
+                }
+                if (empty($otp_code)) {
+                    $error->add(412, "otpCode parameter can't be empty!", array('status' => 400));
+                    return $error;
+                }
+
+                $response = $this->otp_verification($txId, $otp_code);
+                $status = $response['status'];
+                if ('SUCCESS' == $status) {
+                    $response = $this->MSAPI_create_user();
+                }
+                return new WP_REST_Response($response, 123);
+                break;
+
+            case 'reAuth':
+                $response = $this->otp_authentication();
+                return new WP_REST_Response($response, 123);
+                break;
+
+            default:
+                $response = array(
+                    'code' => 400,
+                    'message' => "Can't create this user"
+                );
+                return new WP_REST_Response($response, 123);
+                break;
+        }
+
+    }
+
+    /**
+     * The function responsible for validate the body content (Received Form Content)
+     * @return WP_Error
+     *
+     * @author Mustafa Shaaban
+     * @version 1.0.0 V
+     */
+    public function validate_body_content()
+    {
         $error = new WP_Error();
         if (empty($this->username)) {
             $error->add(400, "Username field 'username' is required.", array('status' => 400));
@@ -66,7 +131,6 @@ class Ms_api_register extends WP_REST_Request
             $error->add(404, "occupation field is required.", array('status' => 400));
             return $error;
         }
-
 
         if (!validate_username($this->username)) {
             $error->add(405, 'Sorry, the username you entered is not valid', array('status' => 400));
@@ -100,67 +164,15 @@ class Ms_api_register extends WP_REST_Request
             $error->add(410, 'Password is not identical', array('status' => 400));
             return $error;
         }
-
-
-        if ($url_params['type'] === 'authentication') {
-            $this->otp_authentication();
-        } elseif ($url_params['type'] === 'verification') {
-            $txId = $parameters['txId'];
-            $token = $parameters['token'];
-            if (empty($txId)) {
-                $error->add(411, "txId parameter can't be empty!", array('status' => 400));
-                return $error;
-            }
-            if (empty($token)) {
-                $error->add(412, "token parameter can't be empty!", array('status' => 400));
-                return $error;
-            }
-
-            $this->otp_verification($txId, $token);
-        }
-
     }
 
-    public function MSAPI_get_userData($user)
-    {
-        $user_basics = $user->data;
-        $user_meta = get_user_meta($user->ID);
-        $object = new stdClass();
-        foreach ($user_meta as $key => $value) {
-            $object->$key = $value[0];
-        }
-        $data = (object)array_merge((array)$user_basics, (array)$object);
-        return $data;
-    }
-
-    public function getToken($method, $url, $data = false)
-    {
-        if (!$data || empty($data)) {
-            return false;
-        }
-
-        $curl = curl_init();
-        curl_setopt_array($curl, array(
-            CURLOPT_URL => $url,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => $method,
-            CURLOPT_POSTFIELDS => http_build_query($data),
-        ));
-        $response = curl_exec($curl);
-        $err = curl_error($curl);
-        curl_close($curl);
-
-        if ($err) {
-            return "cURL Error #:" . $err;
-        } else {
-            return json_decode($response);
-        }
-    }
-
+    /**
+     * The function responsible for send otp verification message to the user
+     * @return array|int
+     *
+     * @author Mustafa Shaaban
+     * @version 1.0.0 V
+     */
     public function otp_authentication()
     {
         /* The challenge rest api url which needs to be called to challenge the user. */
@@ -203,17 +215,26 @@ class Ms_api_register extends WP_REST_Request
         curl_setopt($ch, CURLOPT_POST, 1);
         /* Calling the rest API */
         $result = curl_exec($ch);
-        if (curl_errno($ch)) {
-            print curl_error($ch);
-        } else {
-            curl_close($ch);
+        $err = curl_errno($ch);
+        curl_close($ch);
+        if ($err) {
+            return $err;
         }
         /* If a valid response is received, get the JSON response */
         $response = (array)json_decode($result);
-        return new WP_REST_Response($response, 123);
+        return $response;
     }
 
-    public function otp_verification($txId, $token)
+    /**
+     * The function responsible for validate the user code
+     * @param $txId
+     * @param $token
+     * @return WP_REST_Response
+     *
+     * @author Mustafa Shaaban
+     * @version 1.0.0 V
+     */
+    public function otp_verification($txId, $otp_code)
     {
         /* The challenge rest api url which needs to be called to validate the user. */
         $validateUrl = "https://login.xecurify.com/moas/api/auth/validate";
@@ -230,7 +251,7 @@ class Ms_api_register extends WP_REST_Request
         /* The Array containing the validate information */
         $jsonRequest = array(
             'txId' => $txId,
-            'token' => $token
+            'token' => $otp_code
         );
         /* JSON encode the request array to get JSON String */
         $jsonRequestString = json_encode($jsonRequest);
@@ -252,21 +273,23 @@ class Ms_api_register extends WP_REST_Request
         curl_setopt($ch, CURLOPT_POST, 1);
         /* Calling the rest API */
         $result = curl_exec($ch);
-        if (curl_errno($ch)) {
-            print curl_error($ch);
-        } else {
-            curl_close($ch);
+        $err = curl_errno($ch);
+        curl_close($ch);
+        if ($err) {
+            return $err;
         }
         /* If a valid response is received, get the JSON response */
         $response = (array)json_decode($result);
-        $status = $response['status'];
-        if ($status == 'SUCCESS') {
-            $this->MSAPI_create_user();
-        } else {
-            return new WP_REST_Response($response, 123);
-        }
+        return $response;
     }
 
+    /**
+     * The function responsible for creating the user
+     * @return WP_REST_Response
+     *
+     * @author Mustafa Shaaban
+     * @version 1.0.0 V
+     */
     public function MSAPI_create_user()
     {
         $user_id = wp_create_user($this->username, $this->password, $this->email);
@@ -276,7 +299,7 @@ class Ms_api_register extends WP_REST_Request
             update_user_meta($user_id, 'phone', $this->phone);
             update_user_meta($user_id, 'telephone', $this->phone);
             update_user_meta($user_id, 'peepso_user_field_146', $this->occupation);
-            $userdata = $this->MSAPI_get_userData($user);
+            $user_data = $this->MSAPI_get_userData($user);
             $method = 'POST';
             $url = home_url() . "/wp-json/jwt-auth/v1/token";
             $data = array('username' => $this->username, 'password' => $this->password);
@@ -285,8 +308,8 @@ class Ms_api_register extends WP_REST_Request
             $response = array(
                 'code' => 200,
                 'message' => "User '" . $this->username . "' Registration was Successful",
-                'data' => $userdata,
-                'token' => $token->token
+                'data' => $user_data,
+                'token' => $token
             );
 
         } else {
@@ -295,7 +318,65 @@ class Ms_api_register extends WP_REST_Request
                 'message' => "Can't create this user"
             );
         }
-        return new WP_REST_Response($response, 123);
+        return $response;
+    }
+
+    /**
+     * The function responsible for getting the token for the provided user
+     * @param $method
+     * @param $url
+     * @param bool $data
+     * @return array|bool|mixed|object|string
+     *
+     * @author Mustafa Shaaban
+     * @version 1.0.0 V
+     */
+    public function getToken($method, $url, $data = false)
+    {
+        if (!$data || empty($data)) {
+            return false;
+        }
+
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => $method,
+            CURLOPT_POSTFIELDS => http_build_query($data),
+        ));
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        curl_close($curl);
+
+        if ($err) {
+            return $err;
+        } else {
+            return json_decode($response);
+        }
+    }
+
+    /**
+     * The function responsible for get the user data
+     * @param $user
+     * @return object
+     *
+     * @author Mustafa Shaaban
+     * @version 1.0.0 V
+     */
+    public function MSAPI_get_userData($user)
+    {
+        $user_basics = $user->data;
+        $user_meta = get_user_meta($user->ID);
+        $object = new stdClass();
+        foreach ($user_meta as $key => $value) {
+            $object->$key = $value[0];
+        }
+        $data = (object)array_merge((array)$user_basics, (array)$object);
+        return $data;
     }
 
 }
