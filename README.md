@@ -122,7 +122,7 @@ To create the authentication code and send it to the phone number; You need to m
         
 The REST API will check if this is a valid data or not and then, Will send the authentication code to the phone number if it valid.
 
-**Sample Code (JS XHR):**_          
+**Sample Code (JS XHR):**          
             
     var data = new FormData();
         data.append("username", "Jhone");
