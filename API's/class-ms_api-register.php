@@ -221,15 +221,27 @@ class Ms_api_register extends WP_REST_Request
             return $err;
         }
         /* If a valid response is received, get the JSON response */
-        $response = (array)json_decode($result);
+        $otp_response = (array)json_decode($result);
+        $response = [
+            'code' => 200,
+            "message" => $otp_response['message'],
+            "status" => $otp_response['status'],
+            'data' => [
+                'txId' => $otp_response['txId'],
+                'authType' => $otp_response['authType'],
+                'responseType' => $otp_response['responseType'],
+                'phoneDelivery' => $otp_response['phoneDelivery'],
+                'emailDelivery' => $otp_response['emailDelivery']
+            ],
+        ];
         return $response;
     }
 
     /**
      * The function responsible for validate the user code
      * @param $txId
-     * @param $token
-     * @return WP_REST_Response
+     * @param $otp_code
+     * @return array
      *
      * @author Mustafa Shaaban
      * @version 1.0.0 V
@@ -273,19 +285,41 @@ class Ms_api_register extends WP_REST_Request
         curl_setopt($ch, CURLOPT_POST, 1);
         /* Calling the rest API */
         $result = curl_exec($ch);
-        $err = curl_errno($ch);
+        $otp_err = curl_errno($ch);
         curl_close($ch);
-        if ($err) {
+        if ($otp_err) {
+            $err = [
+                'code' => 400,
+                "message" => $otp_err['message'],
+                "status" => $otp_err['status'],
+                'data' => [
+                    'txId' => $otp_err['txId'],
+                    'responseType' => $otp_err['responseType']
+                ],
+            ];
             return $err;
         }
         /* If a valid response is received, get the JSON response */
         $response = (array)json_decode($result);
+        $status = $response['status'];
+        if ($status === 'FAILED') {
+            $response = [
+                'code' => 400,
+                "message" => $response['message'],
+                "status" => $response['status'],
+                'data' => [
+                    'txId' => $response['txId'],
+                    'responseType' => $response['responseType']
+                ],
+            ];
+
+        }
         return $response;
     }
 
     /**
      * The function responsible for creating the user
-     * @return WP_REST_Response
+     * @return array
      *
      * @author Mustafa Shaaban
      * @version 1.0.0 V
