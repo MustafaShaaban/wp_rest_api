@@ -39,7 +39,13 @@ class Ms_api_profile_about extends WP_REST_Request
         $parameters = $request->get_body_params();
         $url_params = $request->get_url_params();
         $this->validate_url_id($url_params['id']);
-
+        if (empty($parameters)) {
+            $response = [
+                'code' => 200,
+                'message' => 'The form body can\'t be empty'
+            ];
+            return new WP_REST_Response($response, 123);
+        }
         switch ($url_params['type']) {
             case 'about':
                 $validations = $this->validate_about_content($parameters);
@@ -47,7 +53,13 @@ class Ms_api_profile_about extends WP_REST_Request
                     return $validations;
                 }
                 $response = $this->update_about_content();
-                return new WP_REST_Response($response, 123);
+                break;
+            case 'privacy':
+                $validations = $this->validate_about_privacy($parameters);
+                if (!empty($validations)) {
+                    return $validations;
+                }
+                $response = $this->update_about_privacy($parameters);
                 break;
             default:
                 break;
@@ -79,7 +91,7 @@ class Ms_api_profile_about extends WP_REST_Request
     }
 
     /**
-     * The function responsible for validate the body content (Received Form Content)
+     * The function responsible for validate the body content (Received Form Content) for about type.
      * @return WP_Error
      *
      * @author Mustafa Shaaban
@@ -262,6 +274,27 @@ class Ms_api_profile_about extends WP_REST_Request
     }
 
     /**
+     * The function responsible for validate the body content (Received Form Content) for about type.
+     * @return WP_Error
+     *
+     * @author Mustafa Shaaban
+     * @version 1.0.0 V
+     */
+    public function validate_about_privacy($parameters) {
+        $error = new WP_Error();
+        $filed_name = sanitize_text_field($parameters['field_name']);
+        $code = (int)$parameters['code'];
+        if (empty($filed_name)) {
+            $error->add(400, "Field name mustn\'t be empty!.", array('status' => 400));
+            return $error;
+        }
+        if (empty($code)) {
+            $error->add(400, "Privacy code mustn\'t be empty!.", array('status' => 400));
+            return $error;
+        }
+    }
+
+    /**
      * The function responsible for update the user About page content.
      *
      * @return array
@@ -308,6 +341,72 @@ class Ms_api_profile_about extends WP_REST_Request
             }
         }
 
+        return $response;
+    }
+
+    /**
+     * The function responsible for updating the privacy of the user data
+     * @param $parameters
+     * @return array
+     *
+     * @author Mustafa Shaaban
+     * @version 1.0.0 V
+     */
+    public function update_about_privacy($parameters) {
+        $response = [
+            'code' => 400,
+            'message' => 'There is nothing to be change!.'
+        ];
+        $filed_name = sanitize_text_field($parameters['field_name']);
+        $code = (int)$parameters['code'];
+        $privacy = [
+            '10' => 'Public',
+            '20' => 'Site Members',
+            '30' => 'Friends Only',
+            '40' => 'Only Me'
+        ];
+
+        if ($filed_name === 'gender') {
+            $update = update_user_meta($this->user_ID, 'peepso_user_field_gender_acc', $code);
+            if ($update) {
+                $response = $this->get_response("The Privacy has been changed to $privacy[$code] successfully!.");
+            }
+        } elseif ($filed_name === 'birthdate') {
+            $update = update_user_meta($this->user_ID, 'peepso_user_field_birthdate_acc', $code);
+            if ($update) {
+                $response = $this->get_response("The Privacy has been changed to $privacy[$code] successfully!.");
+            }
+        } elseif ($filed_name === 'description') {
+            $update = update_user_meta($this->user_ID, 'peepso_user_field_description_acc', $code);
+            if ($update) {
+                $response = $this->get_response("The Privacy has been changed to $privacy[$code] successfully!.");
+            }
+        } elseif ($filed_name === 'location') {
+            $update = update_user_meta($this->user_ID, 'peepso_user_field_location_acc', $code);
+            if ($update) {
+                $response = $this->get_response("The Privacy has been changed to $privacy[$code] successfully!.");
+            }
+        } elseif ($filed_name === 'website') {
+            $update = update_user_meta($this->user_ID, 'peepso_user_field_user_url_acc', $code);
+            if ($update) {
+                $response = $this->get_response("The Privacy has been changed to $privacy[$code] successfully!.");
+            }
+        } elseif ($filed_name === 'country') {
+            $update = update_user_meta($this->user_ID, 'peepso_user_field_147_acc', $code);
+            if ($update) {
+                $response = $this->get_response("The Privacy has been changed to $privacy[$code] successfully!.");
+            }
+        } elseif ($filed_name === 'sports') {
+            $update = update_user_meta($this->user_ID, 'peepso_user_field_148_acc', $code);
+            if ($update) {
+                $response = $this->get_response("The Privacy has been changed to $privacy[$code] successfully!.");
+            }
+        } elseif ($filed_name === 'clubs') {
+            $update = update_user_meta($this->user_ID, 'peepso_user_field_149_acc', $code);
+            if ($update) {
+                $response = $this->get_response("The Privacy has been changed to $privacy[$code] successfully!.");
+            }
+        }
         return $response;
     }
 

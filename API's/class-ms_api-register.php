@@ -15,6 +15,16 @@ class Ms_api_register extends WP_REST_Request
     protected $password2;
     protected $phone;
     protected $occupation;
+    protected $defaults = [
+        'peepso_user_field_gender_acc',
+        'peepso_user_field_birthdate_acc',
+        'peepso_user_field_description_acc',
+        'peepso_user_field_location_acc',
+        'peepso_user_field_user_url_acc',
+        'peepso_user_field_147_acc',
+        'peepso_user_field_148_acc',
+        'peepso_user_field_149_acc'
+    ];
 
     public function __construct()
     {
@@ -63,7 +73,9 @@ class Ms_api_register extends WP_REST_Request
 
             case 'verification':
                 $validations = $this->validate_body_content();
-                if (!empty($validations)) {return $validations;}
+                if (!empty($validations)) {
+                    return $validations;
+                }
 
                 $error = new WP_Error();
                 $txId = $parameters['txId'];
@@ -330,9 +342,7 @@ class Ms_api_register extends WP_REST_Request
         if (!is_wp_error($user_id)) {
             $user = get_user_by('id', $user_id);
             $user->set_role('subscriber');
-            update_user_meta($user_id, 'phone', $this->phone);
-            update_user_meta($user_id, 'telephone', $this->phone);
-            update_user_meta($user_id, 'peepso_user_field_146', $this->occupation);
+            $this->update_profile_meta($user_id);
             $user_data = $this->MSAPI_get_userData($user);
             $method = 'POST';
             $url = home_url() . "/wp-json/jwt-auth/v1/token";
@@ -411,6 +421,22 @@ class Ms_api_register extends WP_REST_Request
         }
         $data = (object)array_merge((array)$user_basics, (array)$object);
         return $data;
+    }
+
+    /**
+     * The function responsible for update the user meta
+     * @param $user_id
+     *
+     * @author Mustafa Shaaban
+     * @version 1.0.0 V
+     */
+    public function update_profile_meta($user_id) {
+        foreach ($this->defaults as $meta) {
+            update_user_meta($user_id, $meta, '10');
+        }
+        update_user_meta($user_id, 'phone', $this->phone);
+        update_user_meta($user_id, 'telephone', $this->phone);
+        update_user_meta($user_id, 'peepso_user_field_146', $this->occupation);
     }
 
 }

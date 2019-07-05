@@ -51,6 +51,7 @@ class Ms_api_forms extends WP_REST_Request
 
         $response['data']['country'] = (array)$this->sanitize_countries();
         $response['data']['calls_code'] = $this->get_countries_calls_code();
+        $response['data']['privacy'] = $this->get_privacy_data();
         $occupation = new WP_Query([
             'post_type' => 'peepso_user_field',
             'title' => 'Occupation',
@@ -595,6 +596,16 @@ class Ms_api_forms extends WP_REST_Request
             'codes' => $countries
         );
         return $filtered;
+    }
+
+    public function get_privacy_data() {
+        $privacy = [
+            '10' => 'Public',
+            '20' => 'Site Members',
+            '30' => 'Friends Only',
+            '40' => 'Only Me'
+        ];
+        return $privacy;
     }
 }
 
